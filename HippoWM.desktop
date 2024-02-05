@@ -1,0 +1,6 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=HippoWM
+Comment=Tiling Window Manager
+Exec=hippowm
+Type=Xsession
