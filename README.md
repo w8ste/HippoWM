@@ -1,6 +1,9 @@
+# Hippo WM
+![showcase](images/showcase.png)
+
 ### 1. Basic Window Management:
 
-- [ ] **Create Window Manager Skeleton:**
+- [X] **Create Window Manager Skeleton:**
     - Set up a basic Rust project structure.
     - Implement a simple window manager loop.
 
@@ -94,32 +97,3 @@
 - [ ] **Window Previews:**
     - Allow users to preview window contents through thumbnails.
 
-### 13. Accessibility and Usability:
-
-- [ ] **Accessibility Features:**
-    - Implement features for accessibility, such as keyboard navigation and screen reader support.
-
-- [ ] **Usability Improvements:**
-    - Continuously refine the user interface and experience based on user feedback.
-
-### 14. Documentation and Testing:
-
-- [ ] **Documentation:**
-    - Write comprehensive documentation for the window manager's features and configuration options.
-
-- [ ] **Testing:**
-    - Develop a test suite to ensure the stability and correctness of the window manager.
-
-### 15. Community Engagement:
-
-- [ ] **Community Outreach:**
-    - Share your project with the Rust community and gather feedback.
-    - Encourage contributions from other developers.
-
-### 16. Continuous Integration and Deployment:
-
-- [ ] **CI/CD Pipeline:**
-    - Set up a continuous integration (CI) pipeline for automated testing.
-
-- [ ] **Release Management:**
-    - Implement a release management process for versioning and distribution.
