@@ -86,11 +86,11 @@ impl Default for Config {
                     action: "FocusPreviousScreen".into(),
                 },
                 Action {
-                    bind: "M-grave".into(),
+                    bind: "M-n".into(),
                     action: "NextLayout".into(),
                 },
                 Action {
-                    bind: "M-S-grave".into(),
+                    bind: "M-S-n".into(),
                     action: "PreviousLayout".into(),
                 },
                 Action {
