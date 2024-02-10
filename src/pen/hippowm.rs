@@ -94,6 +94,7 @@ impl HippoWM {
         self.outer_gaps = config.outer_gap;
         self.ratio = config.ratio;
         self.ratio_step = config.ratio_steps;
+        
 
         // set keybinds to default ones
         let mut kb: HashMap<String, Box<dyn KeyEventHandler<RustConn>>> = Default::default();

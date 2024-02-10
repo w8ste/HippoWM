@@ -7,6 +7,7 @@ use config::get_config;
 use pen::hippowm::run;
 mod config;
 mod pen;
+mod bar;
 
 
 fn main() {
