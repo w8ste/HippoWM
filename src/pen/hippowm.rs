@@ -16,12 +16,8 @@ use penrose::{core::{
     layout::{
         messages::{
             IncMain,
-            ShrinkMain,
-            ExpandMain as ExpMain
+            ShrinkMain
         },
-        //different layouts
-        CenteredMain,
-        Grid,
         MainAndStack,
         Monocle,
         //build in layout transformers e.g. gaps around windows
@@ -32,16 +28,13 @@ use penrose::{core::{
         }
     },
     actions::{
-        key_handler as kh,
-        floating,
         modify_with,
-        send_layout_message,
-        exit
+        send_layout_message
     }
 }, extensions::{
     actions::toggle_fullscreen,
     hooks::add_ewmh_hooks
-}, Color, Result, x::XConn, x11rb::RustConn, util, Error};
+}, Color, Result, x::XConn, x11rb::RustConn, util};
 use penrose::builtin::actions::floating::float_focused;
 use penrose::builtin::actions::key_handler;
 use penrose::builtin::layout::messages::ExpandMain;
