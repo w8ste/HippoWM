@@ -18,11 +18,11 @@ pub struct Config {
     pub x_actions: Vec<Action>,
     pub workspaces: Vec<String>,
     pub auto_start: Vec<String>,
-
-
 }
 
 impl Default for Config {
+
+    // create default configuration
     fn default() -> Self {
         let mut workspaces: Vec<String> = vec![];
         for ws in 1..10 {
@@ -58,19 +58,27 @@ impl Default for Config {
                     action: "focusPrevious".into(),
                 },
                 Action {
-                    bind: "M-f".into(),
-                    action: "ToggleFullScreen".into(),
-                },
-                Action {
-                    bind: "M-S-k".into(),
+                    bind: "M-k".into(),
                     action: "SwapUp".into(),
                 },
                 Action {
-                    bind: "M-S-j".into(),
+                    bind: "M-j".into(),
                     action: "SwapDown".into(),
                 },
                 Action {
                     bind: "M-S-f".into(),
+                    action: "ToggleFullScreen".into(),
+                },
+                Action {
+                    bind: "M-S-n".into(),
+                    action: "NextLayout".into(),
+                },
+                Action {
+                    bind: "M-S-p".into(),
+                    action: "PreviousLayout".into(),
+                },
+                Action {
+                    bind: "M-f".into(),
                     action: "floatfocused".into(),
                 },
                 Action {
@@ -84,14 +92,6 @@ impl Default for Config {
                 Action {
                     bind: "M-bracketleft".into(),
                     action: "FocusPreviousScreen".into(),
-                },
-                Action {
-                    bind: "M-n".into(),
-                    action: "NextLayout".into(),
-                },
-                Action {
-                    bind: "M-S-n".into(),
-                    action: "PreviousLayout".into(),
                 },
                 Action {
                     bind: "M-S-Up".into(),
@@ -144,6 +144,7 @@ pub struct Command {
 }
 
 
+// load configuration or create default one, if one does not already exist
 pub fn get_config() -> Config {
     confy::load("hippowm", Some("config")).unwrap_or_else(|_| {
         confy::store("hippowm", Some("config"), Config::default()).unwrap();

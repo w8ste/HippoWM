@@ -42,6 +42,7 @@ use penrose::core::bindings::KeyBindings;
 
 use penrose::core::hooks::StateHook;
 use penrose::util::spawn_with_args;
+use penrose::x11rb::Conn;
 
 
 #[derive(Default)]
@@ -56,6 +57,7 @@ struct HippoWM {
 
 impl HippoWM {
 
+    //creates layouts and returns them as a Layout Stack
     fn get_layouts(&self) -> ls {
         return stack!(
             MainAndStack::side(self.max_main, self.ratio, self.ratio_step),
@@ -72,6 +74,7 @@ impl HippoWM {
         })
     }
 
+    // sets the keybindings for the workspaces
     fn ws_binds(&self, kb: HashMap<String, Box<dyn KeyEventHandler<RustConn>>>)
                     -> HashMap<String, Box<dyn KeyEventHandler<RustConn>>> {
         let mut key_bindings: HashMap<String, Box<dyn KeyEventHandler<RustConn>>> = Default::default();
@@ -86,6 +89,7 @@ impl HippoWM {
         }
         return key_bindings;
     }
+
     fn configure(&mut self, config: Config) -> HashMap<String, Box<dyn KeyEventHandler<RustConn>>> {
         // set variables
         self.max_main = config.max_main;
@@ -140,13 +144,13 @@ impl HippoWM {
             "kill" => Some(modify_with(|a| a.kill_focused())),
             "focusnext" => Some(modify_with(|a| a.focus_down())), //focus element down the stack
             "focusprevious" => Some(modify_with(|a| a.focus_up())), //focus element up the stack
+            "nextlayout" => Some(modify_with(|a| a.next_layout())),
+            "previouslayout" => Some(modify_with(|a| a.previous_layout())),
             "togglefullscreen" => Some(toggle_fullscreen()),
             "swapup" => Some(modify_with(|a| a.swap_up())),
             "swapdown" => Some(modify_with(|a| a.swap_down())),
             "floatfocused" => Some(float_focused()),
             "toggletag" => Some(modify_with(|a| a.toggle_tag())),
-            "nextlayout" => Some(modify_with(|a| a.next_layout())),
-            "previouslayout" => Some(modify_with(|a| a.previous_layout())),
             "incmain" => Some(send_layout_message(|| IncMain(1))),
             "decmain" => Some(send_layout_message(|| IncMain(-1))),
             "expandmain" => Some(send_layout_message(|| ExpandMain)),
@@ -155,6 +159,8 @@ impl HippoWM {
         }
     }
 }
+
+//creates and runs the actual WM
 pub fn run(config: Config) -> Result<()>{
     FmtSubscriber::builder().with_max_level(Level::TRACE).finish().init();
 
@@ -188,8 +194,8 @@ pub fn run(config: Config) -> Result<()>{
     });
 
     let keys : KeyBindings<RustConn> = parse_keybindings_with_xmodmap(hippowm.ws_binds(kb))?;
-    let rustc = RustConn::new()?;
-    let wm = WindowManager::new(
+    let rustc : Conn<penrose::x11rb::RustConnection>= RustConn::new()?;
+    let wm : WindowManager<RustConn> = WindowManager::new(
         conf,
         keys,
         HashMap::new(),
@@ -207,6 +213,7 @@ pub struct SpawnOnStartup {
 }
 
 impl SpawnOnStartup {
+    // allows creating a boxed instance of SpawnOnStartup wrapped in a trait object
     pub fn make_box<T> (pointer: impl Into<Cow<'static, str>>) -> Box<dyn StateHook<T>>
     where T: XConn,
     {
@@ -215,6 +222,8 @@ impl SpawnOnStartup {
 }
 
 impl<T> StateHook<T> for SpawnOnStartup where T: XConn {
+
+    //run arguments in bash
     fn call(&mut self, _state: &mut State<T>, _x: &T) -> Result<()> {
         let arguments:[&str; 2] = ["-c", &self.pointer];
         spawn_with_args("bash", &arguments)?;
