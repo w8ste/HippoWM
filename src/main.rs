@@ -1,20 +1,22 @@
 use config::get_config;
 use pen::hippowm::run;
+mod bar;
 mod config;
 mod pen;
-mod bar;
-
+use x::xwm::Xwm;
+mod x;
+use env_logger;
+use libc;
+use std::env::args;
+use std::{env, process};
 
 fn main() {
-    let config = get_config();
-    run(config).unwrap();
-    /*
-    This is for the x implementation
+    //let config = get_config();
+    //run(config).unwrap();
+    //This is for the x implementation
     // Initialize logging with env_logger
-    if let Err(err) = env_logger::init() {
-        eprintln!("Failed to initialize logger: {}", err);
-        process::exit(libc::EXIT_FAILURE);
-    }
+
+    env_logger::init();
 
     // Create WindowManager instance using pattern matching
     match Xwm::create() {
@@ -27,5 +29,4 @@ fn main() {
             process::exit(libc::EXIT_FAILURE)
         }
     }
-     */
 }

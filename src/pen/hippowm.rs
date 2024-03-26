@@ -1,49 +1,38 @@
 use crate::config::Config;
-use std::borrow::Cow;
-use std::collections::HashMap;
-use tracing::Level;
-use tracing_subscriber::{FmtSubscriber, util::SubscriberInitExt};
-use penrose::{core::{
-    Config as PConfig,
-    State,
-    WindowManager,
-    bindings::{
-        KeyEventHandler,
-        parse_keybindings_with_xmodmap
-    },
-    layout::LayoutStack as ls
-}, stack, builtin::{
-    layout::{
-        messages::{
-            IncMain,
-            ShrinkMain
-        },
-        MainAndStack,
-        Monocle,
-        //build in layout transformers e.g. gaps around windows
-        transformers::{
-            ReflectHorizontal,
-            ReserveTop,
-            Gaps
-        }
-    },
-    actions::{
-        modify_with,
-        send_layout_message
-    }
-}, extensions::{
-    actions::toggle_fullscreen,
-    hooks::add_ewmh_hooks
-}, Color, Result, x::XConn, x11rb::RustConn, util};
 use penrose::builtin::actions::floating::float_focused;
 use penrose::builtin::actions::key_handler;
 use penrose::builtin::layout::messages::ExpandMain;
 use penrose::core::bindings::KeyBindings;
+use penrose::{
+    builtin::{
+        actions::{modify_with, send_layout_message},
+        layout::{
+            messages::{IncMain, ShrinkMain},
+            //build in layout transformers e.g. gaps around windows
+            transformers::{Gaps, ReflectHorizontal, ReserveTop},
+            MainAndStack,
+            Monocle,
+        },
+    },
+    core::{
+        bindings::{parse_keybindings_with_xmodmap, KeyEventHandler},
+        layout::LayoutStack as ls,
+        Config as PConfig, State, WindowManager,
+    },
+    extensions::{actions::toggle_fullscreen, hooks::add_ewmh_hooks},
+    stack, util,
+    x::XConn,
+    x11rb::RustConn,
+    Color, Result,
+};
+use std::borrow::Cow;
+use std::collections::HashMap;
+use tracing::Level;
+use tracing_subscriber::{util::SubscriberInitExt, FmtSubscriber};
 
 use penrose::core::hooks::StateHook;
 use penrose::util::spawn_with_args;
 use penrose::x11rb::Conn;
-
 
 #[derive(Default)]
 struct HippoWM {
@@ -52,11 +41,10 @@ struct HippoWM {
     inner_gaps: u32,
     ratio: f32,
     ratio_step: f32,
-    max_main: u32
+    max_main: u32,
 }
 
 impl HippoWM {
-
     //creates layouts and returns them as a Layout Stack
     fn get_layouts(&self) -> ls {
         return stack!(
@@ -68,23 +56,33 @@ impl HippoWM {
             )),
             MainAndStack::bottom(self.max_main, self.ratio, self.ratio_step),
             Monocle::boxed()
-        ).map(|l| {
+        )
+        .map(|l| {
             ReserveTop::wrap(
-            Gaps::wrap(l, self.outer_gaps, self.inner_gaps), self.top_gaps)
-        })
+                Gaps::wrap(l, self.outer_gaps, self.inner_gaps),
+                self.top_gaps,
+            )
+        });
     }
 
     // sets the keybindings for the workspaces
-    fn ws_binds(&self, kb: HashMap<String, Box<dyn KeyEventHandler<RustConn>>>)
-                    -> HashMap<String, Box<dyn KeyEventHandler<RustConn>>> {
-        let mut key_bindings: HashMap<String, Box<dyn KeyEventHandler<RustConn>>> = Default::default();
+    fn ws_binds(
+        &self,
+        kb: HashMap<String, Box<dyn KeyEventHandler<RustConn>>>,
+    ) -> HashMap<String, Box<dyn KeyEventHandler<RustConn>>> {
+        let mut key_bindings: HashMap<String, Box<dyn KeyEventHandler<RustConn>>> =
+            Default::default();
         key_bindings.extend(kb);
         for ws in &["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"] {
             key_bindings.extend([
-                (format!("M-{}", ws),
-                 modify_with(move |client_set| client_set.focus_tag(ws)),),
-                (format!("M-S-{}", ws),
-                 modify_with(move |client_set| client_set.move_focused_to_tag(ws)))
+                (
+                    format!("M-{}", ws),
+                    modify_with(move |client_set| client_set.focus_tag(ws)),
+                ),
+                (
+                    format!("M-S-{}", ws),
+                    modify_with(move |client_set| client_set.move_focused_to_tag(ws)),
+                ),
             ])
         }
         return key_bindings;
@@ -98,7 +96,6 @@ impl HippoWM {
         self.outer_gaps = config.outer_gap;
         self.ratio = config.ratio;
         self.ratio_step = config.ratio_steps;
-        
 
         // set keybinds to default ones
         let mut kb: HashMap<String, Box<dyn KeyEventHandler<RustConn>>> = Default::default();
@@ -124,19 +121,27 @@ impl HippoWM {
         }
         //set command keybinds
         for cmd in config.commands {
-            kb.insert(cmd.bind, key_handler(move |_, _| util::spawn(cmd.command.as_str())));
+            kb.insert(
+                cmd.bind,
+                key_handler(move |_, _| util::spawn(cmd.command.as_str())),
+            );
         }
         //set xcommand keybinds
         for cmd in config.x_command {
-            kb.insert(cmd.bind, key_handler(move |_, _| util::spawn(cmd.command.as_str())));
+            kb.insert(
+                cmd.bind,
+                key_handler(move |_, _| util::spawn(cmd.command.as_str())),
+            );
         }
         //set windowcommand keybidnds
         for cmd in config.window_commands {
-            kb.insert(cmd.bind, key_handler(move |_, _| util::spawn(cmd.command.as_str())));
+            kb.insert(
+                cmd.bind,
+                key_handler(move |_, _| util::spawn(cmd.command.as_str())),
+            );
         }
 
-        return kb
-
+        return kb;
     }
 
     fn action(&self, action: &str) -> Option<Box<dyn KeyEventHandler<RustConn>>> {
@@ -155,19 +160,22 @@ impl HippoWM {
             "decmain" => Some(send_layout_message(|| IncMain(-1))),
             "expandmain" => Some(send_layout_message(|| ExpandMain)),
             "shrmain" => Some(send_layout_message(|| ShrinkMain)),
-            _ => None
+            _ => None,
         }
     }
 }
 
 //creates and runs the actual WM
-pub fn run(config: Config) -> Result<()>{
-    FmtSubscriber::builder().with_max_level(Level::TRACE).finish().init();
+pub fn run(config: Config) -> Result<()> {
+    FmtSubscriber::builder()
+        .with_max_level(Level::TRACE)
+        .finish()
+        .init();
 
-    let mut pre_hook : String = "".into();
+    let mut pre_hook: String = "".into();
 
     if !config.auto_start.is_empty() {
-        for (e, i) in config.auto_start.iter().enumerate(){
+        for (e, i) in config.auto_start.iter().enumerate() {
             pre_hook.push_str(i);
             if config.auto_start.len() > 1 && e + 1 < config.auto_start.len() {
                 pre_hook.push_str(" && ");
@@ -182,7 +190,7 @@ pub fn run(config: Config) -> Result<()>{
     };
 
     let mut hippowm: HippoWM = HippoWM::default();
-    let kb : HashMap<String, Box<dyn KeyEventHandler<RustConn>>> = hippowm.configure(config.clone());
+    let kb: HashMap<String, Box<dyn KeyEventHandler<RustConn>>> = hippowm.configure(config.clone());
 
     let conf = add_ewmh_hooks(PConfig {
         default_layouts: hippowm.get_layouts(),
@@ -193,14 +201,9 @@ pub fn run(config: Config) -> Result<()>{
         ..PConfig::default()
     });
 
-    let keys : KeyBindings<RustConn> = parse_keybindings_with_xmodmap(hippowm.ws_binds(kb))?;
-    let rustc : Conn<penrose::x11rb::RustConnection>= RustConn::new()?;
-    let wm : WindowManager<RustConn> = WindowManager::new(
-        conf,
-        keys,
-        HashMap::new(),
-        rustc
-    )?;
+    let keys: KeyBindings<RustConn> = parse_keybindings_with_xmodmap(hippowm.ws_binds(kb))?;
+    let rustc = RustConn::new()?;
+    let wm: WindowManager<RustConn> = WindowManager::new(conf, keys, HashMap::new(), rustc)?;
 
     wm.run().unwrap();
     Ok(())
@@ -214,18 +217,23 @@ pub struct SpawnOnStartup {
 
 impl SpawnOnStartup {
     // allows creating a boxed instance of SpawnOnStartup wrapped in a trait object
-    pub fn make_box<T> (pointer: impl Into<Cow<'static, str>>) -> Box<dyn StateHook<T>>
-    where T: XConn,
+    pub fn make_box<T>(pointer: impl Into<Cow<'static, str>>) -> Box<dyn StateHook<T>>
+    where
+        T: XConn,
     {
-        return Box::new(Self {pointer: pointer.into()})
+        return Box::new(Self {
+            pointer: pointer.into(),
+        });
     }
 }
 
-impl<T> StateHook<T> for SpawnOnStartup where T: XConn {
-
+impl<T> StateHook<T> for SpawnOnStartup
+where
+    T: XConn,
+{
     //run arguments in bash
     fn call(&mut self, _state: &mut State<T>, _x: &T) -> Result<()> {
-        let arguments:[&str; 2] = ["-c", &self.pointer];
+        let arguments: [&str; 2] = ["-c", &self.pointer];
         spawn_with_args("bash", &arguments)?;
         Ok(())
     }

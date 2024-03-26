@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Config {
@@ -21,7 +21,6 @@ pub struct Config {
 }
 
 impl Default for Config {
-
     // create default configuration
     fn default() -> Self {
         let mut workspaces: Vec<String> = vec![];
@@ -30,7 +29,7 @@ impl Default for Config {
         }
         workspaces.push("0".into());
         let config = Config {
-            max_main : 1,
+            max_main: 1,
             border: 0x00000000,
             focused_border: 0xf00e70ef,
             ratio: 0.5,
@@ -41,12 +40,10 @@ impl Default for Config {
             commands: get_commands(),
             window_commands: vec![],
             x_command: vec![],
-            actions: vec![
-                Action {
-                    bind: "M-S-q".into(),
-                    action: "kill".into()
-                }
-            ],
+            actions: vec![Action {
+                bind: "M-S-q".into(),
+                action: "kill".into(),
+            }],
             window_actions: vec![],
             x_actions: vec![
                 Action {
@@ -116,7 +113,6 @@ impl Default for Config {
         confy::store("hippowm", Some("config"), config).unwrap();
         confy::load("hippowm", Some("config")).unwrap()
     }
-
 }
 pub fn get_commands() -> Vec<Command> {
     return vec![
@@ -126,23 +122,22 @@ pub fn get_commands() -> Vec<Command> {
         },
         Command {
             bind: "M-p".into(),
-            command: "rofi -show drun".into()
-        }
-    ]
+            command: "rofi -show drun".into(),
+        },
+    ];
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Action {
     pub bind: String,
-    pub action: String
+    pub action: String,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct Command {
     pub bind: String,
-    pub command: String
+    pub command: String,
 }
-
 
 // load configuration or create default one, if one does not already exist
 pub fn get_config() -> Config {
