@@ -9,6 +9,8 @@ use env_logger;
 use libc;
 use std::env::args;
 use std::{env, process};
+use std::fmt::Pointer;
+use glib::property::PropertyGet;
 
 fn main() {
     //let config = get_config();
@@ -19,10 +21,10 @@ fn main() {
     env_logger::init();
 
     // Create WindowManager instance using pattern matching
-    match Xwm::create() {
+    match Xwm::create("") {
         Ok(window_manager) => {
             // Run the WindowManager
-            window_manager.run();
+            window_manager.as_ptr().run();
         }
         Err(error) => {
             eprintln!("Failed to initialize window manager: {}", error);

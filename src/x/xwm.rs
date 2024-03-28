@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use env_logger;
 use gtk::atk::Window;
 use libc::{c_int, c_uchar, c_ulong};
@@ -6,12 +7,11 @@ use penrose::pure::Position;
 use std::collections::HashMap;
 use std::ffi::CString;
 use std::ptr;
+use std::ptr::null;
 use std::rc::Rc;
+use gtk::atk::RelationType::Null;
 use x11::keysym::XK_F4;
-use x11::xlib::{
-    self, XConfigureEvent, XConfigureRequestEvent, XCreateWindowEvent, XDestroyWindowEvent,
-    XGetGeometry, XMapEvent, XMapRequestEvent, XReparentEvent, XUnmapEvent,
-};
+use x11::xlib::{self, XConfigureEvent, XConfigureRequestEvent, XCreateWindowEvent, XDestroyWindowEvent, XDisplayName, XGetGeometry, XMapEvent, XMapRequestEvent, XOpenDisplay, XReparentEvent, XUnmapEvent};
 use x11::xlib::{
     BadAccess, Display, Mod1Mask, MotionNotify, SubstructureNotifyMask, SubstructureRedirectMask,
     XButtonEvent, XCheckTypedWindowEvent, XDisplayString, XErrorEvent, XEvent, XGetErrorText,
@@ -31,21 +31,19 @@ static mut WM_DETECTED: bool = false;
 
 impl Xwm {
     //This method connects to the X server and creates a wm instance
-    pub fn create() -> Result<Rc<Self>, String> {
+    pub fn create(display_string : &str) -> Result<Rc<RefCell<Xwm>>, String> {
+        let display_c_string : CString = CString::new(display_string).unwrap_or_default();
+        let display : *mut Display;
         unsafe {
-            //Open X Display or returning Error in case this fails
-            let display: *mut Display = xlib::XOpenDisplay(ptr::null());
-            if display.is_null() {
-                let display_name: CString = CString::new(xlib::XDisplayName(ptr::null())).unwrap();
-                return Err(format!(
-                    "Error whilst attempting to open an display {}",
-                    display_name.to_string_lossy()
-                ));
-            }
-
-            //Crate a window manager instance by creating a new reference-counting pointer
-            Ok(Rc::new(Self::xwm(display)))
+            display = XOpenDisplay(display_c_string.as_ptr());
         }
+        if display.is_null() {
+            //return Err(format!("Could not open XDisplay: {}", unsafe {XDisplayName(display_c_string.as_ptr())}));
+            return Err("Could not open XDisplay".parse().unwrap());
+
+        }
+        let window_manager : Rc<RefCell<Xwm>> = Rc::new(RefCell::new(Self::xwm(display)));
+        Ok(window_manager)
     }
 
     // Invoked internally by create().
@@ -84,8 +82,9 @@ impl Xwm {
             XSync(self.display, 0);
             if (WM_DETECTED) {
                 error!(
-                    "Error, other wm on display {}",
-                    XDisplayString(self.display)
+                    //"Error, other wm on display {}",
+                    //XDisplayString(self.display)
+                    "This is another wm on display"
                 );
                 return;
             }
