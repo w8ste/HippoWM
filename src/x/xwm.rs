@@ -22,7 +22,7 @@ pub struct Xwm {
     display: *mut xlib::Display,
     // Handle to root window.
     root: xlib::Window,
-    clients: HashMap<Window, Window>,
+    clients: HashMap<u64, u64>,
 }
 
 //modifying this value could cause undefined behavior, which
@@ -48,7 +48,7 @@ impl Xwm {
 
     // Invoked internally by create().
     fn xwm(display: *mut xlib::Display) -> Self {
-        let clients: HashMap<Window, Window> = HashMap::new();
+        let clients: HashMap<u64, u64> = HashMap::new();
         return Xwm {
             display,
             root: unsafe { xlib::XDefaultRootWindow(display) },
@@ -99,7 +99,7 @@ impl Xwm {
         }
 
         loop {
-            let mut event: XEvent = Default::default();
+            let mut event: XEvent = unsafe {std::mem::zeroed()};
             unsafe { XNextEvent(self.display, &mut event) };
             info!("Received event: {:?}", event);
 
@@ -115,7 +115,7 @@ impl Xwm {
                             event.motion.window,
                             MotionNotify,
                             &mut event,
-                        ) {}
+                        ) != 0 {}
                         Self::on_motion_notify(&self, event.motion);
                     }
                     xlib::CreateNotify => Self::on_create_notify(&self, event.create_window),
