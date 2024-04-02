@@ -20,3 +20,10 @@ tracing = "0.1.40"
 gtk = "0.18.1"
 glib = "0.19.0"
 x11rb = "0.13.0"
+
+[profile.release]
+# Other release profile configurations here
+# Add X11 libraries to link with
+# You may need to adjust the library names based on your system
+rustc-link-lib = ["X11", "X11-xcb"]
+
